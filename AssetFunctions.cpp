@@ -1,4 +1,4 @@
-// C++ functions on asset returns data
+// C++ functions on asset price or returns data
 
 #include <iostream>
 #include <cmath>
