@@ -108,3 +108,15 @@ double valatrisk(double arr[], int sze){
 
     return 0;
 }
+
+double cvar(double arr[], int sze)
+{
+    
+    return 0;
+}
+
+double maxDD(double arr[], int sze)
+{
+
+    return 0;
+}
