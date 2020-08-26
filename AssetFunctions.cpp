@@ -1,5 +1,6 @@
 // C++ functions on asset price or returns data
 
+#include <ctime>
 #include <iostream>
 #include <cmath>
 using namespace std;
@@ -14,31 +15,25 @@ void printArray(double[], int);
 double mean(double[], int);
 double var(double[], int);
 double sd(double[], int);
+double sharpe(double[], int, double);
+double sortino(double[], int, double);
 double semiv(double[], int);
-double valatrisk(double[], int);
-double cvar(double[], int);
-//double maxDD(double[], int);
+double valatrisk(double[], int, double);
+double cvar(double[], int, double);
+double maxDD(double[], int);
 
 int main(){
+    clock_t start = clock();
+
     AssetFunctions data;
     data.prices[0] = 1;
     data.rets[0] = 0;
     for(int i = 1; i < (sizeof(data.prices) / sizeof(*data.prices)); i++){
         double acc = 1e6;
-        data.prices[i] = data.prices[i - 1] * exp((sqrt(-2 * log(double((rand() % long(acc)) / acc))) * cos(2 * M_PI * double(rand() % long(acc)) / acc))/10);
+        // Random walk with 2% drift
+        data.prices[i] = data.prices[i - 1] * exp(0.02+(sqrt(-2 * log(double((rand() % long(acc)) / acc))) * cos(2 * M_PI * double(rand() % long(acc)) / acc))/10);
         data.rets[i] = log(data.prices[i] / data.prices[i-1]);
     }
-
-    double myPrices[10];
-    for(int i = 0;i<10; i++){
-        myPrices[i] = pow(i+1, 2);
-        //data.prices[i] = myPrices[i];
-    }
-
-    // Array size flexible filling data.prices 
-
-    // for (int i = 0; i < (sizeof(data.prices) / sizeof(*data.prices)); i++)
-    //     data.prices[i] = myPrices[i % (sizeof(myPrices) / sizeof(*myPrices))];
 
     printArray(data.prices, sizeof(data.prices) / sizeof(*data.prices));
     cout << endl;
@@ -48,7 +43,14 @@ int main(){
     cout << "Mean: " << mean(data.rets, sizeof(data.rets) / sizeof(*data.rets)) << endl;
     cout << "Var: " << var(data.rets, sizeof(data.rets) / sizeof(*data.rets)) << endl;
     cout << "SD: " << sd(data.rets, sizeof(data.rets) / sizeof(*data.rets)) << endl;
+    cout << "Sharpe: " << sharpe(data.rets, sizeof(data.rets) / sizeof(*data.rets), 0.01) << endl;
     cout << "Semivariance: " << semiv(data.rets, sizeof(data.rets) / sizeof(*data.rets)) << endl;
+    cout << "Sortino: " << sortino(data.rets, sizeof(data.rets) / sizeof(*data.rets), 0.01) << endl;
+    cout << "VaR: " << valatrisk(data.rets, sizeof(data.rets) / sizeof(*data.rets), 0.01) << endl;
+    cout << "CVaR: " << cvar(data.rets, sizeof(data.rets) / sizeof(*data.rets), 0.01) << endl;
+    cout << "Max DD: " << maxDD(data.rets, sizeof(data.rets) / sizeof(*data.rets)) << endl;
+
+    cout << "\nTime elapsed: " << (clock() - start) / (double)CLOCKS_PER_SEC << endl;
 
     return 0;
 }
@@ -62,7 +64,7 @@ void printArray(double arr[], int sze){
 }
 
 double mean(double arr[], int sze){
-    long s = 0;
+    double s = 0;
     for(int i = 0; i < sze; i++)
         s += arr[i];
     
@@ -80,6 +82,26 @@ double var(double arr[], int sze){
 
 double sd(double arr[], int sze){
     return sqrt(var(arr, sze));
+}
+
+double sharpe(double arr[], int sze, double r){
+    double m;
+    double s = 0;
+    for (int i = 0; i < sze; i++)
+        s += arr[i];
+    m = s / sze;
+
+    return (m - r) / sd(arr, sze);
+}
+
+double sortino(double arr[], int sze, double r){
+    double m;
+    double s = 0;
+    for (int i = 0; i < sze; i++)
+        s += arr[i];
+    m = s / sze;
+
+    return (m - r) / sqrt(semiv(arr, sze));
 }
 
 double semiv(double arr[], int sze){
@@ -103,20 +125,36 @@ double semiv(double arr[], int sze){
     return ssBelow / (numBelow-1);
 }
 
-double valatrisk(double arr[], int sze){
+double valatrisk(double arr[], int sze, double p){
+    sort(arr, arr+sze);
     
-
-    return 0;
+    return -arr[int(sze*p)];
 }
 
-double cvar(double arr[], int sze)
-{
-    
-    return 0;
+double cvar(double arr[], int sze, double p){
+    sort(arr, arr + sze);
+    double s = 0;
+    for (int i = 0; i < sze * p; i++)
+    {
+        s += arr[i];
+    }
+
+    return -s / int(sze*p);
 }
 
-double maxDD(double arr[], int sze)
-{
-
-    return 0;
+double maxDD(double arr[], int sze){
+    double ind[sze];
+    ind[0] = 1;
+    for(int i = 1; i < sze; i++){
+        ind[i] = ind[i-1] * exp(arr[i]);
+    }
+    double mdd = 0;
+    // Not computationally efficient 
+    for(int i = 0; i < sze; i++){
+        for (int j = i; j < sze; j++){
+            mdd = max(mdd, log(ind[i] / ind[j]));
+        }
+    }
+    
+    return mdd;
 }
