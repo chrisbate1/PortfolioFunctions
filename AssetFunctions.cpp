@@ -116,11 +116,9 @@ double semiv(double arr[], int sze){
         }
     
     double meanBelow = sumBelow / double(numBelow);
-    for(int i = 0; i < sze; i++){
-        if(arr[i] <= m){
+    for(int i = 0; i < sze; i++)
+        if(arr[i] <= m)
             ssBelow += (arr[i] - meanBelow)*(arr[i] - meanBelow);
-        }
-    }
 
     return ssBelow / (numBelow-1);
 }
@@ -135,9 +133,7 @@ double cvar(double arr[], int sze, double p){
     sort(arr, arr + sze);
     double s = 0;
     for (int i = 0; i < sze * p; i++)
-    {
         s += arr[i];
-    }
 
     return -s / int(sze*p);
 }
@@ -145,16 +141,13 @@ double cvar(double arr[], int sze, double p){
 double maxDD(double arr[], int sze){
     double ind[sze];
     ind[0] = 1;
-    for(int i = 1; i < sze; i++){
+    for(int i = 1; i < sze; i++)
         ind[i] = ind[i-1] * exp(arr[i]);
-    }
     double mdd = 0;
     // Not computationally efficient 
-    for(int i = 0; i < sze; i++){
-        for (int j = i; j < sze; j++){
+    for(int i = 0; i < sze; i++)
+        for (int j = i; j < sze; j++)
             mdd = max(mdd, log(ind[i] / ind[j]));
-        }
-    }
     
     return mdd;
 }
